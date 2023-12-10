@@ -1,5 +1,5 @@
 import openpyxl
-
+import pandas as pd
 
 def read_excel(filepath, ws_name=None):
     wb = openpyxl.load_workbook(filepath, data_only=True)
@@ -9,18 +9,9 @@ def read_excel(filepath, ws_name=None):
         ws = wb[ws_name]
     return ws
 
-
-def get_journal_urls(ws):
-    journal_url_list = [
-        ws.cell(row=i, column=17).value for i in range(2, ws.max_row)]
-    return journal_url_list
-
-
-def get_journal_names(ws):
-    journal_name_list = [
-        ws.cell(row=i, column=4).value for i in range(2, ws.max_row)]
-    return journal_name_list
-
+def read_excel_df(filepath, ws_name):
+    df = pd.DataFrame(pd.read_excel(filepath, ws_name))
+    return df
 
 def save_to_excel(filepath, data_list):
     new_wb = openpyxl.Workbook()
