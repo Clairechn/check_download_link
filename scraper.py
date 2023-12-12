@@ -14,14 +14,16 @@ class CheckDownloadLinks():
     '''
     Check if the download links of the journals is valid by randomly choosing one link from every journal
     '''
-    def __init__(self, journal_list_file="journal_list.xlsx", ws_name="Only List_406"):
-        self.journal_list_file = journal_list_file
-        self.journal_df = read_excel_df(self.journal_list_file, ws_name)
+    def __init__(self, **kwargs):
+        self.journal_list_file = kwargs["journal_list_filename"]
+        self.journal_df = read_excel_df(self.journal_list_file, kwargs["journal_list_sheetname"])
         self.driver = webdriver.Chrome(service=utils.service, options=utils.chrome_options)
 
     def check_download_links(self):
         for journal_index, journal_url in (tqdm(self.journal_df['URL'].items(), total=self.journal_df.shape[0])):
+            # Navigate to the journal page
             self.navigate_to_journal_page(journal_url, journal_index)
+            # Randomly inspect links in the journal 
             attempts = 0
             message = "Faild to inspect"
             while attempts <= 5:
@@ -161,5 +163,8 @@ class CheckDownloadLinks():
         self.journal_df.at[jorunal_index, column] = message
 
     def save_checked_list(self, filepath="checked_list.xlsx", ws_name="Checked"):
-        print("Save checked list to excel......")
+        print("Save checked list to excel...")
         save_to_excel(filepath, self.journal_df, ws_name)
+
+    def driver_quit(self):
+        self.driver.quit()
