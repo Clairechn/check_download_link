@@ -10,7 +10,6 @@ import random
 import time
 from selenium.webdriver.common.action_chains import ActionChains
 
-
 class CheckDownloadLinks():
     '''
     Check if the download links of the journals is valid by randomly choosing one link from every journal
@@ -43,8 +42,6 @@ class CheckDownloadLinks():
                     break
             self.write_message_to_df(message, journal_index)
         # self.journal_df[['期刊代碼', '測試']]
-        print("Save to excel...")
-        save_to_excel(self.journal_list_file, self.journal_df)
 
     def navigate_to_journal_page(self, journal_url, journal_index):
         try:
@@ -162,3 +159,7 @@ class CheckDownloadLinks():
 
     def write_message_to_df(self, message, jorunal_index, column="測試"):
         self.journal_df.at[jorunal_index, column] = message
+
+    def save_checked_list(self, filepath="checked_list.xlsx", ws_name="Checked"):
+        print("Save checked list to excel......")
+        save_to_excel(filepath, self.journal_df, ws_name)

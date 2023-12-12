@@ -13,11 +13,5 @@ def read_excel_df(filepath, ws_name):
     df = pd.DataFrame(pd.read_excel(filepath, ws_name))
     return df
 
-def save_to_excel(filepath, data_list):
-    new_wb = openpyxl.Workbook()
-    new_ws = new_wb.active
-
-    for row in data_list:
-        new_ws.append(row)
-
-    new_wb.save(filepath)
+def save_to_excel(filepath, df, ws_name):
+    df.to_excel(filepath, sheet_name=ws_name, index=False)
