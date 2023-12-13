@@ -4,5 +4,4 @@ This program is used to check whether journal files on the cnki website can be d
 ## Step for usage
 1. Download the chromedriver supporting your chrome browser
 2. Pass the chromedriver.exe in this repository
-3. Command line of executing the program
-   `python main.py --journal_list_filename journal_list.xlsx --journal_list_sheetname check_list`
+3. Command line of executing the program<br>`python main.py --journal_list_filename journal_list.xlsx --journal_list_sheetname check_list`
