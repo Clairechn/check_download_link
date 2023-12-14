@@ -8,7 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import os
 
 chrome_options = Options()
-chrome_options.add_argument("--headless")
+# chrome_options.add_argument("--headless")
 download_directory = os.path.join(os.getcwd(), 'download')
 prefs = {'download.default_directory': download_directory} # Download directory
 chrome_options.add_experimental_option('prefs', prefs)
