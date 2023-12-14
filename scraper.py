@@ -141,7 +141,7 @@ class CheckDownloadLinks():
 
     def get_download_message(self):
         try:
-            message = wait_for_present_element(self.driver, 10, '/html/body/div[2]/div[2]')
+            message = wait_for_present_element(self.driver, 5, '/html/body/div/p')
             return message.text
         except TimeoutException as e:
             return None
