@@ -22,7 +22,8 @@ class CheckDownloadLinks():
     def check_download_links(self):
         for journal_index, journal_url in (tqdm(self.journal_df['URL'].items(), total=self.journal_df.shape[0])):
             # Navigate to the journal page
-            self.navigate_to_journal_page(journal_url, journal_index)
+            if not self.navigate_to_journal_page(journal_url, journal_index):
+                return
             # Randomly inspect links in the journal 
             attempts = 0
             message = "Faild to inspect"
@@ -41,6 +42,8 @@ class CheckDownloadLinks():
                     attempts += 1
                     print("Retry the random inspection...", attempts)
                 else:
+                    self.switch_to_window(0)
+                    wait_for_clickable_element(self.driver, 10, '//*[@id="secNaviPaper"]/a').click()
                     break
             self.write_message_to_df(message, journal_index)
         # self.journal_df[['期刊代碼', '測試']]
@@ -51,11 +54,12 @@ class CheckDownloadLinks():
         except Exception as e:
             print("Failed to navigate")
             self.write_message_to_df("Faild to navigate", journal_index)
-            pass
+            return False
         else:
             # Wait to load page
             wait_for_present_element(self.driver, 10, '//*[@id="leftYearTree"]')
             print("Journal {}".format(journal_index))
+            return True
 
     def select_random_issue(self):
         all_issues = self.driver.find_elements(
@@ -102,41 +106,42 @@ class CheckDownloadLinks():
         return download_btn
 
     def check_file_downloading(self, download_btn):
-        message = self.wait_for_file_downloading(download_btn)
-        time.sleep(5)
+        message = self.wait_for_download_page_loading()
         if message is not None:
             print("Faild to download file: ", message)
             return message
+        if self.directory_is_empty(utils.download_directory):
+            message = "Error deteced, download link: {}".format(download_btn.get_attribute('href'))
         else:
-            if self.directory_is_empty(utils.download_directory):
-                print("Error deteced")
-            else:
+            print("Wait for file downloading...")
+            if self.wait_for_file_downloading(utils.download_directory):
                 print("File downloaded successfully")
                 self.remove_download_file(utils.download_directory)
                 message = "ok"
                 return message
+            message = "Timeout on downloading file"
+        return message
         
-    def wait_for_file_downloading(self, download_btn):
+    def wait_for_download_page_loading(self):
         attempt = 1
-        while (len(self.driver.window_handles)) > 1:
-            if attempt <= 10:
-                print("Waiting for file downloading...", attempt)
-                try:
-                    self.switch_to_window(1)
-                    message = self.get_download_message()
-                    if message is not None:
-                        self.driver.close()
-                        self.switch_to_window(0)
-                        return message
-                    else:
-                        time.sleep(5)
-                        attempt += 1
-                        continue
-                except NoSuchWindowException as e:
-                    break
-            else:
-                message = download_btn.get_attribute('href')
-                return message
+        while (len(self.driver.window_handles)) > 1 and attempt <= 10:
+            print("Waiting for download page loading...", attempt)
+            try:
+                self.switch_to_window(1)
+                # Get the download message on the downlaod page
+                message = self.get_download_message()
+                # Page is loaded and get the download message on the page
+                if message is not None:
+                    self.driver.close()
+                    self.switch_to_window(0)
+                    return message
+                # Page is loaded but fails to get the message
+                else:
+                    time.sleep(5)
+                    attempt += 1
+                    continue
+            except NoSuchWindowException as e:
+                break
         return None
 
     def get_download_message(self):
@@ -152,6 +157,18 @@ class CheckDownloadLinks():
     
     def directory_is_empty(self, path):
         return True if not os.listdir(path) else False
+
+    def wait_for_file_downloading(self, path):
+        download_file = True
+        timeout = 30
+        while download_file and timeout >= 0:
+            time.sleep(1)
+            download_file = False
+            for filename in os.listdir(path):
+                if filename.endswith(".crdownload"):
+                    download_file = True
+            timeout -= 1
+        return True if timeout >= 0 else False
 
     def remove_download_file(self, path):
         for filename in os.listdir(path):
